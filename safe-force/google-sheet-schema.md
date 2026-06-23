@@ -23,7 +23,10 @@
 | `caption` | _(vazio → preenchido por Claude)_ | Legenda completa do post Instagram (até 2200 chars). Inclui hashtags. |
 | `estado` | `rascunho` | **Valores válidos:** `rascunho` / `aprovado` / `publicado` |
 | `data_publicacao` | `2024-02-15` | Data alvo de publicação. Pode ser usado para trigger agendado. |
-| `ig_media_id` | `17854360000000000` | Devolvido pela Meta API após publicação. Preenchido pelo workflow. |
+| `fb_page_id` | `123456789` | ID da Página Facebook do cliente. |
+| `caption_fb` | _(opcional)_ | Caption específica para Facebook. Se vazio, usa o campo `caption`. |
+| `ig_media_id` | `17854360000000000` | Devolvido pela Meta API após publicação IG. Preenchido pelo workflow. |
+| `fb_post_id` | `123456789_987654321` | Devolvido pela Meta API após publicação FB. Preenchido pelo workflow. |
 | `data_publicado` | `2024-02-15 10:30` | Timestamp real de publicação. Preenchido pelo workflow. |
 | `notas` | _(opcional)_ | Campo livre para anotações humanas (ex: "aprovado com edição manual"). |
 

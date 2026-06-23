@@ -5,7 +5,9 @@
 Dois modos de execução no mesmo workflow (ou dois workflows separados):
 
 - **Modo 1 — Gerar copy:** lê linhas `rascunho` com `imagem_url` preenchido → Claude gera copy → escreve na Sheet → muda estado para `aguarda_aprovacao`
-- **Modo 2 — Publicar:** lê linhas `aprovado` → Templated render → Meta publish → log na Sheet → muda estado para `publicado`
+- **Modo 2 — Publicar:** lê linhas `aprovado` → Templated render → publica em **Instagram + Facebook em simultâneo** → log na Sheet → muda estado para `publicado`
+
+**Publicação sincronizada Instagram + Facebook:** o mesmo render do Templated.io é publicado nas duas plataformas. O caption pode ser o mesmo ou ter variações ligeiras (ex: hashtags diferentes por plataforma).
 
 ---
 
@@ -91,26 +93,30 @@ Dois modos de execução no mesmo workflow (ou dois workflows separados):
         ↓
 [Code — Extrair render_url da resposta Templated]
         ↓
-[HTTP Request — Meta: Criar container]
+[HTTP Request — Instagram: Criar container]
   POST https://graph.facebook.com/v21.0/{{ig_user_id}}/media
   Params:
     image_url: {{render_url}}
     caption: {{caption}}
     access_token: {{$credentials.metaAccessToken}}
         ↓
-[Code — Extrair creation_id]
+[Code — Extrair ig_creation_id]
         ↓
-[Wait — 5 segundos]
-  (Meta recomenda esperar antes de publicar)
-        ↓
-[HTTP Request — Meta: Publicar]
-  POST https://graph.facebook.com/v21.0/{{ig_user_id}}/media_publish
-  Params:
-    creation_id: {{creation_id}}
-    access_token: {{$credentials.metaAccessToken}}
-        ↓
+        ├──────────────────────────────────────────────────────┐
+        ↓                                                      ↓
+[Wait — 5 segundos]                          [HTTP Request — Facebook: Publicar foto]
+  (aguardar antes de publicar IG)              POST https://graph.facebook.com/v21.0/{{fb_page_id}}/photos
+        ↓                                        Params:
+[HTTP Request — Instagram: Publicar]               url: {{render_url}}
+  POST https://graph.facebook.com/v21.0/{{ig_user_id}}/media_publish    message: {{caption_fb}}
+  Params:                                          access_token: {{$credentials.metaAccessToken}}
+    creation_id: {{ig_creation_id}}            ↓
+    access_token: {{$credentials.metaAccessToken}}  [Code — Extrair fb_post_id]
+        ↓                                      ↓
+        └──────────────────────────────────────┘
+                           ↓
 [Google Sheets — Update Row]
-  Atualiza: ig_media_id, data_publicado
+  Atualiza: ig_media_id, fb_post_id, data_publicado
   Muda: estado → "publicado"
         ↓
 [IF — Erro em algum passo?]
@@ -125,26 +131,44 @@ Dois modos de execução no mesmo workflow (ou dois workflows separados):
 |---|---|---|
 | `claudeApiKey` | Header Auth | console.anthropic.com |
 | `templatedApiKey` | Header Auth | templated.io → API Keys |
-| `metaAccessToken` | Header Auth | Meta Graph API Explorer (permissão `instagram_content_publish`) |
+| `metaAccessToken` | Header Auth | Meta Graph API Explorer |
 | Google Sheets | OAuth2 | n8n built-in Google OAuth |
 
 ---
 
 ## Versão Meta Graph API
 
-Usar **v21.0** (versão estável no momento da implementação — confirmar em developers.facebook.com/docs/graph-api/changelog se necessário).
+Usar **v21.0**.
 
 Permissões necessárias:
-- `instagram_content_publish`
-- `instagram_basic`
-- `pages_show_list`
+- `instagram_content_publish` — publicar no Instagram
+- `instagram_basic` — ler info do IG
+- `pages_show_list` — listar páginas
+- `pages_manage_posts` — publicar no Facebook Page
+- `pages_read_engagement` — ler info da Page
+
+---
+
+## Schema da Sheet — colunas adicionais para Facebook
+
+Adicionar à Sheet existente:
+
+| Coluna | Exemplo | Notas |
+|---|---|---|
+| `fb_page_id` | `123456789` | ID da Página Facebook do cliente |
+| `caption_fb` | _(opcional)_ | Caption específica para FB — se vazio usa `caption` do IG |
+| `fb_post_id` | `123_456` | Devolvido pela API após publicação. Preenchido pelo workflow. |
+
+Se `caption_fb` estiver vazio, o workflow usa o `caption` (o mesmo do Instagram).
 
 ---
 
 ## Notas de implementação
 
-1. **`async: false` no Templated** — recebe o URL do render na resposta imediata. Sem webhook necessário para o piloto.
-2. **Logo Safe Force** — fazer upload para Cloudinary uma única vez e fixar o URL no workflow (ou na Sheet como coluna `logo_url`).
-3. **Rate limit Meta** — máximo 25 posts por 24h por conta Instagram. Para o piloto não é problema.
-4. **Erro handling** — o node de erro escreve o estado `erro` na Sheet para reprocessamento manual.
-5. **Teste antes de ligar** — testar o Modo 2 com `async: false` e um `ig_user_id` de conta de teste antes de apontar para a conta real do Safe Force.
+1. **Publicação paralela IG + FB** — os dois ramos correm em paralelo após o render Templated, sem dependência entre si.
+2. **Mesmo render** — a imagem publicada no Instagram e no Facebook é a mesma (o URL do Templated render).
+3. **Facebook endpoint** — `POST /{page-id}/photos` com `url` + `message`. Um único passo (sem container/publish como o IG).
+4. **`async: false` no Templated** — recebe o URL do render na resposta imediata.
+5. **Logo Safe Force** — upload para Cloudinary uma vez, URL fixo no workflow.
+6. **Rate limits** — Instagram: 25 posts/24h. Facebook: sem limite rígido mas evitar mais de 5/dia por boas práticas.
+7. **Erro handling** — o node de erro escreve `erro` na Sheet com a mensagem (IG ou FB) para reprocessamento manual.
