@@ -67,7 +67,7 @@
     },
     {
       "parameters": {
-        "jsCode": "let text = $input.item.json.content[0].text;\ntext = text.replace(/^```json\\s*/, '').replace(/\\s*```$/, '').trim();\nconst response = JSON.parse(text);\nconst row = $input.item.json;\nreturn {\n  json: {\n    row_number: row.row_number,\n    titulo: response.titulo,\n    subtitulo: response.subtitulo,\n    cta: response.cta,\n    caption: response.caption\n  }\n};"
+        "jsCode": "let text = $input.item.json.content[0].text;\ntext = text.replace(/^```json\\s*/, '').replace(/\\s*```$/, '').trim();\nconst response = JSON.parse(text);\nconst row = $input.item.json;\nreturn {\n  json: {\n    row_number: row.row_number,\n    titulo: response.titulo,\n    subtitulo: response.subtitulo,\n    cta: response.cta,\n    caption: response.caption,\n    estado: 'aguarda_aprovacao'\n  }\n};"
       },
       "id": "parse-claude",
       "name": "Parse resposta Claude",
@@ -81,16 +81,17 @@
         "documentId": { "__rl": true, "value": "1oHLWkuV_iJM7q0z0yDFHA0Br3JnRfCjeO5vMRBvq-jo", "mode": "id" },
         "sheetName": { "__rl": true, "value": "Safe Force", "mode": "name" },
         "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "titulo": "={{ $json.titulo }}",
-            "subtitulo": "={{ $json.subtitulo }}",
-            "cta": "={{ $json.cta }}",
-            "caption": "={{ $json.caption }}",
-            "estado": "aguarda_aprovacao"
-          },
+          "mappingMode": "autoMapInputData",
+          "value": {},
           "matchingColumns": ["row_number"],
-          "schema": []
+          "schema": [
+            { "id": "row_number", "displayName": "row_number", "required": false, "defaultMatch": true, "canBeUsedToMatch": true, "display": true, "type": "string", "removed": false },
+            { "id": "titulo", "displayName": "titulo", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "removed": false },
+            { "id": "subtitulo", "displayName": "subtitulo", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "removed": false },
+            { "id": "cta", "displayName": "cta", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "removed": false },
+            { "id": "caption", "displayName": "caption", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "removed": false },
+            { "id": "estado", "displayName": "estado", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "display": true, "type": "string", "removed": false }
+          ]
         },
         "options": {}
       },
