@@ -67,7 +67,7 @@
     },
     {
       "parameters": {
-        "jsCode": "let text = $input.item.json.content[0].text;\ntext = text.replace(/^```json\\s*/, '').replace(/\\s*```$/, '').trim();\nconst response = JSON.parse(text);\nconst row = $input.item.json;\nreturn {\n  json: {\n    row_number: row.row_number,\n    titulo: response.titulo,\n    subtitulo: response.subtitulo,\n    cta: response.cta,\n    caption: response.caption,\n    estado: 'aguarda_aprovacao'\n  }\n};"
+        "jsCode": "let text = $input.item.json.content[0].text;\ntext = text.replace(/^```json\\s*/, '').replace(/\\s*```$/, '').trim();\nconst response = JSON.parse(text);\nconst row_number = $('Sheet — Ler rascunhos').item.json.row_number;\nreturn {\n  json: {\n    row_number: row_number,\n    titulo: response.titulo,\n    subtitulo: response.subtitulo,\n    cta: response.cta,\n    caption: response.caption,\n    estado: 'aguarda_aprovacao'\n  }\n};"
       },
       "id": "parse-claude",
       "name": "Parse resposta Claude",
