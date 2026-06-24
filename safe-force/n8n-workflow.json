@@ -164,7 +164,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"template\": \"9dad503f-3af3-4b94-8626-779c1415abfb\",\n  \"format\": \"jpg\",\n  \"async\": false,\n  \"layers\": {\n    \"imagem_fundo\": {\n      \"image_url\": {{ JSON.stringify($json.imagem_url) }},\n      \"object_fit\": \"cover\",\n      \"object_position\": \"center\"\n    },\n    \"logo\": { \"image_url\": "https://res.cloudinary.com/dmbbzbdop/image/upload/v1779572692/SafeForce-01_pr6wpi.jpg" },\n    \"titulo\": { \"text\": {{ JSON.stringify($json.titulo) }} },\n    \"subtitulo\": { \"text\": {{ JSON.stringify($json.subtitulo) }} },\n    \"cta\": { \"text\": {{ JSON.stringify($json.cta) }} },\n    \"handle\": { \"text\": \"@safeforceoficial\" }\n  }\n}",
+        "jsonBody": "={\n  \"template\": \"9dad503f-3af3-4b94-8626-779c1415abfb\",\n  \"format\": \"jpg\",\n  \"async\": false,\n  \"layers\": {\n    \"imagem_fundo\": {\n      \"image_url\": {{ JSON.stringify($json.imagem_url) }},\n      \"object_fit\": \"cover\",\n      \"object_position\": \"center\"\n    },\n    \"logo\": { \"image_url\": \"https://res.cloudinary.com/dmbbzbdop/image/upload/v1779572692/SafeForce-01_pr6wpi.jpg\" },\n    \"titulo\": { \"text\": {{ JSON.stringify($json.titulo) }} },\n    \"subtitulo\": { \"text\": {{ JSON.stringify($json.subtitulo) }} },\n    \"cta\": { \"text\": {{ JSON.stringify($json.cta) }} },\n    \"handle\": { \"text\": \"@safeforceoficial\" }\n  }\n}",
         "options": {}
       },
       "id": "templated-render",
