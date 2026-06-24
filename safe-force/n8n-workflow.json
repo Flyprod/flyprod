@@ -13,11 +13,6 @@
       "parameters": {
         "documentId": { "__rl": true, "value": "1oHLWkuV_iJM7q0z0yDFHA0Br3JnRfCjeO5vMRBvq-jo", "mode": "id" },
         "sheetName": { "__rl": true, "value": "Safe Force", "mode": "name" },
-        "filtersUI": {
-          "values": [
-            { "lookupColumn": "estado", "lookupValue": "rascunho" }
-          ]
-        },
         "options": {}
       },
       "id": "sheets-read-rascunho",
@@ -117,11 +112,6 @@
       "parameters": {
         "documentId": { "__rl": true, "value": "1oHLWkuV_iJM7q0z0yDFHA0Br3JnRfCjeO5vMRBvq-jo", "mode": "id" },
         "sheetName": { "__rl": true, "value": "Safe Force", "mode": "name" },
-        "filtersUI": {
-          "values": [
-            { "lookupColumn": "estado", "lookupValue": "aprovado" }
-          ]
-        },
         "options": {}
       },
       "id": "sheets-read-aprovado",
