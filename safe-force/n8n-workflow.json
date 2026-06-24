@@ -1,0 +1,352 @@
+{
+  "name": "Posts Instagram + Facebook",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-modo1",
+      "name": "🟡 MODO 1 — Gerar Copy",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "value": "GOOGLE_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Safe Force", "mode": "name" },
+        "filtersUI": {
+          "values": [
+            { "lookupColumn": "estado", "lookupValue": "rascunho" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sheets-read-rascunho",
+      "name": "Sheet — Ler rascunhos",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-rows",
+              "leftValue": "={{ $json.cliente }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-tem-rascunhos",
+      "name": "Tem rascunhos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "CLAUDE_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-8\",\n  \"max_tokens\": 1024,\n  \"system\": {{ JSON.stringify($json.contexto_cliente) }},\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Gera a copy para um post de Instagram e Facebook da Safe Force. Devolve apenas o JSON com titulo, subtitulo, cta e caption.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "claude-gerar-copy",
+      "name": "Claude — Gerar Copy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = JSON.parse($input.item.json.content[0].text);\nconst row = $input.item.json;\nreturn {\n  json: {\n    row_number: row.row_number,\n    titulo: response.titulo,\n    subtitulo: response.subtitulo,\n    cta: response.cta,\n    caption: response.caption\n  }\n};"
+      },
+      "id": "parse-claude",
+      "name": "Parse resposta Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 240]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "GOOGLE_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Safe Force", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "titulo": "={{ $json.titulo }}",
+            "subtitulo": "={{ $json.subtitulo }}",
+            "cta": "={{ $json.cta }}",
+            "caption": "={{ $json.caption }}",
+            "estado": "aguarda_aprovacao"
+          },
+          "matchingColumns": ["row_number"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "sheets-update-copy",
+      "name": "Sheet — Guardar copy + aguarda_aprovacao",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1340, 240]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-modo2",
+      "name": "🟢 MODO 2 — Publicar",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 600]
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "value": "GOOGLE_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Safe Force", "mode": "name" },
+        "filtersUI": {
+          "values": [
+            { "lookupColumn": "estado", "lookupValue": "aprovado" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sheets-read-aprovado",
+      "name": "Sheet — Ler aprovados",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [460, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-aprovados",
+              "leftValue": "={{ $json.cliente }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-tem-aprovados",
+      "name": "Tem aprovados?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.templated.io/v1/render",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer ca9697e5-9ebf-4c62-a5c8-aeb8498186f4" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template\": \"9dad503f-3af3-4b94-8626-779c1415abfb\",\n  \"format\": \"jpg\",\n  \"async\": false,\n  \"layers\": {\n    \"imagem_fundo\": {\n      \"image_url\": {{ JSON.stringify($json.imagem_url) }},\n      \"object_fit\": \"cover\",\n      \"object_position\": \"center\"\n    },\n    \"logo\": { \"image_url\": {{ JSON.stringify($json.logo_url) }} },\n    \"titulo\": { \"text\": {{ JSON.stringify($json.titulo) }} },\n    \"subtitulo\": { \"text\": {{ JSON.stringify($json.subtitulo) }} },\n    \"cta\": { \"text\": {{ JSON.stringify($json.cta) }} },\n    \"handle\": { \"text\": \"@safeforceoficial\" }\n  }\n}",
+        "options": {}
+      },
+      "id": "templated-render",
+      "name": "Templated — Render imagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "const render = $input.item.json;\nconst renderUrl = render.download_url || render.url || render.image_url;\nreturn {\n  json: {\n    ...render,\n    render_url: renderUrl,\n    ig_user_id: $('Sheet — Ler aprovados').item.json.ig_user_id,\n    fb_page_id: $('Sheet — Ler aprovados').item.json.fb_page_id,\n    caption: $('Sheet — Ler aprovados').item.json.caption,\n    caption_fb: $('Sheet — Ler aprovados').item.json.caption_fb || $('Sheet — Ler aprovados').item.json.caption,\n    row_number: $('Sheet — Ler aprovados').item.json.row_number\n  }\n};"
+      },
+      "id": "extrair-render-url",
+      "name": "Extrair render URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $json.ig_user_id }}/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "image_url", "value": "={{ $json.render_url }}" },
+            { "name": "caption", "value": "={{ $json.caption }}" },
+            { "name": "access_token", "value": "META_ACCESS_TOKEN" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ig-criar-container",
+      "name": "Instagram — Criar container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Extrair render URL').item.json.fb_page_id }}/photos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "url", "value": "={{ $('Extrair render URL').item.json.render_url }}" },
+            { "name": "message", "value": "={{ $('Extrair render URL').item.json.caption_fb }}" },
+            { "name": "access_token", "value": "META_ACCESS_TOKEN" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fb-publicar",
+      "name": "Facebook — Publicar foto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 700]
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "wait-5s",
+      "name": "Aguardar 5s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1560, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Extrair render URL').item.json.ig_user_id }}/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "creation_id", "value": "={{ $('Instagram — Criar container').item.json.id }}" },
+            { "name": "access_token", "value": "META_ACCESS_TOKEN" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ig-publicar",
+      "name": "Instagram — Publicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    row_number: $('Extrair render URL').item.json.row_number,\n    ig_media_id: $('Instagram — Publicar').item.json.id,\n    fb_post_id: $('Facebook — Publicar foto').item.json.id || '',\n    data_publicado: new Date().toISOString().replace('T', ' ').substring(0, 16),\n    estado: 'publicado'\n  }\n};"
+      },
+      "id": "merge-resultados",
+      "name": "Juntar resultados IG + FB",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 600]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "GOOGLE_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Safe Force", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ig_media_id": "={{ $json.ig_media_id }}",
+            "fb_post_id": "={{ $json.fb_post_id }}",
+            "data_publicado": "={{ $json.data_publicado }}",
+            "estado": "publicado"
+          },
+          "matchingColumns": ["row_number"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "sheets-update-publicado",
+      "name": "Sheet — Log publicado",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2220, 600]
+    }
+  ],
+  "connections": {
+    "🟡 MODO 1 — Gerar Copy": {
+      "main": [[{ "node": "Sheet — Ler rascunhos", "type": "main", "index": 0 }]]
+    },
+    "Sheet — Ler rascunhos": {
+      "main": [[{ "node": "Tem rascunhos?", "type": "main", "index": 0 }]]
+    },
+    "Tem rascunhos?": {
+      "main": [
+        [{ "node": "Claude — Gerar Copy", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Claude — Gerar Copy": {
+      "main": [[{ "node": "Parse resposta Claude", "type": "main", "index": 0 }]]
+    },
+    "Parse resposta Claude": {
+      "main": [[{ "node": "Sheet — Guardar copy + aguarda_aprovacao", "type": "main", "index": 0 }]]
+    },
+    "🟢 MODO 2 — Publicar": {
+      "main": [[{ "node": "Sheet — Ler aprovados", "type": "main", "index": 0 }]]
+    },
+    "Sheet — Ler aprovados": {
+      "main": [[{ "node": "Tem aprovados?", "type": "main", "index": 0 }]]
+    },
+    "Tem aprovados?": {
+      "main": [
+        [{ "node": "Templated — Render imagem", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Templated — Render imagem": {
+      "main": [[{ "node": "Extrair render URL", "type": "main", "index": 0 }]]
+    },
+    "Extrair render URL": {
+      "main": [
+        [
+          { "node": "Instagram — Criar container", "type": "main", "index": 0 },
+          { "node": "Facebook — Publicar foto", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Instagram — Criar container": {
+      "main": [[{ "node": "Aguardar 5s", "type": "main", "index": 0 }]]
+    },
+    "Aguardar 5s": {
+      "main": [[{ "node": "Instagram — Publicar", "type": "main", "index": 0 }]]
+    },
+    "Instagram — Publicar": {
+      "main": [[{ "node": "Juntar resultados IG + FB", "type": "main", "index": 0 }]]
+    },
+    "Facebook — Publicar foto": {
+      "main": [[{ "node": "Juntar resultados IG + FB", "type": "main", "index": 0 }]]
+    },
+    "Juntar resultados IG + FB": {
+      "main": [[{ "node": "Sheet — Log publicado", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
