@@ -13,7 +13,7 @@
 | Coluna | Exemplo | Notas |
 |---|---|---|
 | `cliente` | Safe Force | Nome do cliente. Fixo por aba (pode ser coluna ou metadado). |
-| `template_id` | `abc123xyz` | ID do template Templated.io criado para este cliente. |
+| `template_id` | `9dad503f-3af3-4b94-8626-779c1415abfb` | ID do template Templated.io do Safe Force. |
 | `ig_user_id` | `17841400000000000` | Instagram User ID (obtido via Graph API). |
 | `contexto_cliente` | _(ver ficheiro contexto-claude.md)_ | Briefing completo que alimenta o Claude. Pode ser numa coluna longa ou num separador dedicado. |
 | `imagem_url` | `https://res.cloudinary.com/...` | URL Cloudinary do pool aprovado. Preenchido no Fluxo A. |

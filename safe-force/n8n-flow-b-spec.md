@@ -74,7 +74,7 @@ Dois modos de execução no mesmo workflow (ou dois workflows separados):
     Content-Type: application/json
   Body:
     {
-      "template": "{{template_id}}",
+      "template": "9dad503f-3af3-4b94-8626-779c1415abfb",
       "format": "jpg",
       "async": false,
       "layers": {
